@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="{{ 'ar' if lang=='ar' else 'en' }}" dir="{{ 'rtl' if lang=='ar' else 'ltr' }}">
+<head>
+  <meta charset="UTF-8" />
+  <title>Stock Pulse Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  
+</head>
+<body>
+  <div class="wrap">
+    <iframe title="stock_dashboard" width="1300" height="800" src="https://app.powerbi.com/view?r=eyJrIjoiMzFjYmNhZjctNjRmMi00NjVmLTkxZTEtYTcyYWQ3OThhNGU0IiwidCI6IjdiZmIxMjg2LWI3MzUtNDM5NS04ZWEwLWVkMmM0ODYxZDc0MiJ9" frameborder="0" allowFullScreen="true"></iframe>
+  </div>
+    <div class="card" style="text-align:center;">
+      <a class="btn" href="{{ url_for('analysis') }}" style=" text-decoration: none;">Back to Analysis</a>
+    </div>
+</body>
+</html>

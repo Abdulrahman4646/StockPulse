@@ -1,0 +1,140 @@
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  overflow-y: auto;
+  background: url("/static/img/stockpules.jpg") no-repeat center center fixed;
+  background-size: cover;
+  position: relative;
+  color: white;
+}
+
+
+
+body::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 0;
+}
+
+
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
+
+.drop-area {
+  border: 2px dashed #00bcd4;
+  border-radius: 10px;
+  width: 400px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  cursor: pointer;
+  transition: 0.3s;
+  margin: 20px 0;
+  background: rgba(10, 26, 47, 0.95);
+  color: white;
+  box-shadow: 0px 4px 15px rgba(0,0,0,0.4);
+}
+
+.drop-area:hover {
+  background: rgba(0, 188, 212, 0.9);
+}
+
+
+input[type="file"] { display: none; }
+
+
+.btn {
+  margin-top: 20px;
+  padding: 15px 30px;
+  font-size: 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #00bcd4;
+  color: white;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0px 4px 20px rgba(0, 188, 212, 0.5);
+}
+
+.btn:hover {
+  background: #0097a7;
+  transform: translateY(-3px);
+  box-shadow: 0px 6px 25px rgba(0, 188, 212, 0.8);
+}
+
+.clear-btn {
+  background: #e53935;
+  box-shadow: 0px 4px 20px rgba(229, 57, 53, 0.5);
+}
+
+.clear-btn:hover {
+  background: #c62828;
+  transform: translateY(-3px);
+  box-shadow: 0px 6px 25px rgba(229, 57, 53, 0.8);
+}
+
+
+form { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: center; 
+  width: 100%; 
+}
+
+
+.preview-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 10px 0;
+  font-size: 14px;
+  background: rgba(10, 26, 47, 0.95);
+  color: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0px 4px 20px rgba(0,0,0,0.5);
+}
+
+.preview-table th, .preview-table td {
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 6px 10px;
+  text-align: center;
+}
+
+.preview-table th { 
+  background: rgba(0, 188, 212, 0.8); 
+}
+
+
+.modal {
+  position: fixed;
+  top: 0; left: 0; right:0; bottom:0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,0.6);
+  z-index: 9999;
+}
+
+.modal-content {
+  background: #0a1a2f;
+  padding: 25px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 300px;
+}

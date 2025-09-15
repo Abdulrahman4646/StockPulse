@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>StockPulse – Upload File</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h1>📂 StockPulse – Upload Your File</h1>
+
+  <form id="uploadForm" action="/predict" method="POST" enctype="multipart/form-data">
+    <div class="drop-area" id="drop-area">
+      <p>Drag & drop your file here</p>
+      <p>or click to browse</p>
+      <input type="file" id="fileElem" name="file" accept=".csv,.xls,.xlsx,.json,.sql">
+      <p id="fileName" style="margin-top:10px; color:#00e676; font-weight:bold;"></p>
+    </div>
+
+    <div id="previewArea" style="max-width:90%; margin-top:20px; overflow-x:auto;"></div>
+
+    <input type="hidden" name="n_estimators" id="n_estimators_hidden">
+    <input type="hidden" name="contamination" id="contamination_hidden">
+    <input type="hidden" name="random_state" id="random_state_hidden">
+
+    <div style="display:flex; gap:15px; justify-content:center; margin-top:10px;">
+      <button type="button" class="btn" id="analyzeBtn">🚀 Start Analysis</button>
+      <button type="button" class="btn clear-btn" id="clearBtn">🗑️ Clear</button>
+    </div>
+  </form>
+
+
+  <div id="paramModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h3>⚙️ Model Parameters</h3>
+      <label>n_estimators: <input type="number" id="n_estimators_input" value="200"></label><br>
+      <label>contamination: <input type="number" step="0.01" id="contamination_input" value="0.02"></label><br>
+      <label>random_state: <input type="number" id="random_state_input" value="42"></label><br>
+      <button id="applyParamsBtn" class="btn">Apply</button>
+      <button id="skipParamsBtn" class="btn clear-btn">Skip</button>
+    </div>
+  </div>
+
+  <div id="statusMessage" style="display:none;">🚀 Processing...</div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ data.meta.title }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body { color:#e9f3fb; background:#0a1a2f; }
+    .wrap { max-width:1100px; margin:24px auto; padding:0 16px; }
+    .card { background:#0e2743; border-radius:14px; padding:16px; margin-bottom:16px; }
+    h1,h2,h3 { margin:.4rem 0; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,0.08); }
+    th { text-align:left; color:#bfe2ff; }
+    .kpis { display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; }
+    .kpi { background:#0b2038; padding:14px; border-radius:12px; text-align:center; }
+    .kpi b { font-size:1.2rem; display:block; margin-top:6px; }
+    .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+    .muted { opacity:.85; }
+    .btn { display:inline-block; padding:10px 14px; background:#12a0d0; color:white; border-radius:10px; text-decoration:none; }
+    .btn:hover { opacity:.9; }
+    img.figure { max-width:100%; border-radius:10px; margin:8px 0; border:1px solid rgba(255,255,255,0.06); }
+    pre { background:#081320; color:#e5f6ff; padding:12px; border-radius:10px; overflow:auto; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- Cover -->
+    <div class="card">
+      <h1>📄 {{ data.meta.title }}</h1>
+      <p class="muted">Generated at: {{ data.meta.generated_at }} | Mode: {{ data.meta.mode|capitalize }}</p>
+      <div class="kpis">
+        <div class="kpi">Rows<b>{{ data.meta.rows }}</b></div>
+        <div class="kpi">Columns<b>{{ data.meta.cols }}</b></div>
+        <div class="kpi">Anomalies<b>{{ data.meta.anomalies }}</b></div>
+        <div class="kpi">Downloads
+          <div style="margin-top:6px;">
+            {% for fname in data.downloads %}
+              <div><a class="btn" href="{{ url_for('static', filename=fname) }}" download>Download {{ fname }}</a></div>
+            {% else %}
+              <div class="muted">No downloadable files detected.</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="card">
+      <h2>📈 Evaluation</h2>
+      {% if data.evaluation and data.evaluation.error %}
+        <p style="color:#ff8a8a"><b>Error:</b> {{ data.evaluation.error }}</p>
+      {% elif data.evaluation %}
+        {% if data.meta.mode == "supervised" %}
+          <div class="grid2">
+            <div>
+              <h3>Average Precision (AP)</h3>
+              <p style="font-size:1.4rem;"><b>{{ data.evaluation.average_precision|round(4) if data.evaluation.average_precision is defined }}</b></p>
+
+              <h3>Best F1 (sweep)</h3>
+              <pre>{{ data.evaluation.best_f1_sweep | tojson(indent=2) }}</pre>
+
+              <h3>Current F1</h3>
+              <pre>{{ data.evaluation.current_threshold_metrics | tojson(indent=2) }}</pre>
+            </div>
+            <div>
+              <h3>PR Curve Points</h3>
+              {% if data.evaluation.pr_curve_points %}
+                <h4>precision</h4>
+                <pre>{{ data.evaluation.pr_curve_points.precision | tojson(indent=2) }}</pre>
+                <h4>recall</h4>
+                <pre>{{ data.evaluation.pr_curve_points.recall | tojson(indent=2) }}</pre>
+                <h4>thresholds</h4>
+                <pre>{{ data.evaluation.pr_curve_points.thresholds | tojson(indent=2) }}</pre>
+                <p class="muted">Note: <code>thresholds</code> has length = len(precision) - 1 (sklearn behavior).</p>
+              {% else %}
+                <p class="muted">PR points not available.</p>
+              {% endif %}
+            </div>
+          </div>
+        {% else %}
+          <div class="grid2">
+            <div>
+              <h3>Unsupervised Summary</h3>
+              <pre>{{ data.evaluation | tojson(indent=2) }}</pre>
+            </div>
+            <div>
+              <h3>Suggested thresholds</h3>
+              <pre>{{ data.evaluation.suggested_thresholds | tojson(indent=2) if data.evaluation.suggested_thresholds is defined }}</pre>
+              <p class="muted">In IsolationForest, lower <code>anomaly_score</code> = more anomalous.</p>
+            </div>
+          </div>
+        {% endif %}
+      {% else %}
+        <p class="muted">No evaluation payload.</p>
+      {% endif %}
+    </div>
+
+
+    {% if data.images and data.images|length > 0 %}
+      <div class="card">
+        <h2>🖼️ Figures</h2>
+        {% for img in data.images %}
+          <img class="figure" src="{{ url_for('static', filename=img) }}" alt="{{ img }}">
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if data.insights %}
+      <div class="card">
+        <h2>🖼 insights</h2>
+        {% for ins in data.insights %}
+          <h5>* {{ ins }}</h5>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+
+    <div class="card">
+      <h2>🚩 Top Anomalies</h2>
+      {% if data.top_anomalies_table and data.top_anomalies_table|length > 0 %}
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th><th>Close</th><th>Volume</th><th>Upper Band</th><th>Lower Band</th><th>Score</th><th>Flag</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in data.top_anomalies_table %}
+              <tr>
+                <td>{{ r.date }}</td>
+                <td>{{ r.close }}</td>
+                <td>{{ r.volume }}</td>
+                <td>{{ r.upper_band }}</td>
+                <td>{{ r.lower_band }}</td>
+                <td>{{ r.anomaly_score }}</td>
+                <td>{{ r.anomaly }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="muted">No anomalies available.</p>
+      {% endif %}
+    </div>
+
+
+    <div class="card" style="text-align:center;">
+      <a class="btn" href="{{ url_for('analysis') }}">Back to Analysis</a>
+    </div>
+  </div>
+</body>
+</html>

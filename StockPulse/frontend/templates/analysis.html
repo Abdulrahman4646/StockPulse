@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>StockPulse – Results</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    .panel { background:#0b1b2e; color:#fff; padding:16px; border-radius:12px; margin:16px auto; max-width:980px; }
+    pre { background:#081320; color:#e5f6ff; padding:12px; border-radius:10px; overflow:auto; }
+    .kv { display:grid; grid-template-columns: 220px 1fr; gap:8px; }
+    .muted { opacity: .85; }
+  </style>
+</head>
+<body>
+  <h1>✅ Analysis Completed</h1>
+    <div class="panel">
+    <h2>📈 Evaluation Summary</h2>
+
+    {% if eval and eval.error %}
+      <p style="color:#ff8080"><b>Error:</b> {{ eval.error }}</p>
+    {% elif eval %}
+      {% if eval.unsupervised %}
+
+        <div class="kv">
+          <div>Total rows</div><div>{{ eval.total_rows }}</div>
+          <div>Anomalies</div><div>{{ eval.anomalies if eval.anomalies is not none else '—' }}</div>
+          <div>Anomaly rate (%)</div><div>{{ eval.anomaly_rate_pct if eval.anomaly_rate_pct is not none else '—' }}</div>
+          <div>Rolling anomaly-rate std</div><div>{{ eval.rolling_anomaly_rate_std if eval.rolling_anomaly_rate_std is not none else '—' }}</div>
+        </div>
+
+        <h3 style="margin-top:1rem;">Score stats</h3>
+        <pre>{{ eval.score_stats | tojson(indent=2) }}</pre>
+
+        <h3>Suggested thresholds (scores)</h3>
+        <pre>{{ eval.suggested_thresholds | tojson(indent=2) }}</pre>
+
+      {% else %}
+
+        <div class="kv">
+          <div>Average Precision</div><div>{{ eval.average_precision|round(4) }}</div>
+          <div>Best F1</div><div>{{ eval.best_f1_sweep.f1|round(4) if eval.best_f1_sweep else '—' }}</div>
+          <div>Best threshold</div><div>{{ eval.best_f1_sweep.threshold|round(4) if eval.best_f1_sweep else '—' }}</div>
+          <div>Current F1</div><div>{{ eval.current_threshold_metrics.f1|round(4) if eval.current_threshold_metrics else '—' }}</div>
+        </div>
+
+        <h3 style="margin-top:1rem;">PR Curve Points</h3>
+        {% if eval.pr_curve_points %}
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div>
+              <h4>precision</h4>
+              <pre>{{ eval.pr_curve_points.precision | tojson(indent=2) }}</pre>
+            </div>
+            <div>
+              <h4>recall</h4>
+              <pre>{{ eval.pr_curve_points.recall | tojson(indent=2) }}</pre>
+            </div>
+          </div>
+          <div style="margin-top:12px;">
+            <h4>thresholds</h4>
+            <pre>{{ eval.pr_curve_points.thresholds | tojson(indent=2) }}</pre>
+            <p class="muted">ملاحظة: <code>thresholds</code> طولها أقل بواحد من precision/recall — هذا طبيعي في sklearn.</p>
+          </div>
+        {% else %}
+          <p class="muted">PR points not available.</p>
+        {% endif %}
+      {% endif %}
+    {% else %}
+      <p class="muted">No evaluation payload found.</p>
+    {% endif %}
+  </div>
+
+  <div id="candlestickChart" style="width:90%; max-width:1000px; height:500px; margin-top:40px; border-radius:12px; overflow:hidden;"></div>
+  
+
+  <div style="display:flex; gap:15px; justify-content:center; margin-top:10px;">
+    <button class="btn" onclick="window.location.href='/dashboard'">📊 Open Dashboard</button>
+    <button class="btn" onclick="window.location.href='/report'">📑 View Report</button>
+
+  </div>
+
+
+    <script>
+    fetch("/static/results.csv")
+      .then(response => response.text())
+      .then(csvText => {
+        const rows = csvText.split("\n").map(r => r.split(","));
+        const header = rows[0].map(h => h.trim().toLowerCase());
+
+        const dateIdx = header.indexOf("date");
+        const openIdx = header.indexOf("open");
+        const highIdx = header.indexOf("high");
+        const lowIdx = header.indexOf("low");
+        const closeIdx = header.indexOf("close");
+
+        const dates = [];
+        const opens = [];
+        const highs = [];
+        const lows = [];
+        const closes = [];
+
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          if (row.length > 1) {
+            dates.push(row[dateIdx]);
+            opens.push(parseFloat(row[openIdx]));
+            highs.push(parseFloat(row[highIdx]));
+            lows.push(parseFloat(row[lowIdx]));
+            closes.push(parseFloat(row[closeIdx]));
+          }
+        }
+
+        const trace = {
+          x: dates,
+          open: opens,
+          high: highs,
+          low: lows,
+          close: closes,
+          type: "candlestick",
+          name: "Stock Data"
+        };
+
+        const layout = {
+          title: { text: "📈 Candlestick Chart", font: { size: 22, color: "white" } },
+          xaxis: { rangeslider: { visible: false }, color: "white" },
+          yaxis: { title: "Price", color: "white" },
+          paper_bgcolor: "rgba(10, 26, 47, 1)",
+          plot_bgcolor: "rgba(0, 188, 212, 0.1)",
+          font: { color: "white" }
+        };
+
+        Plotly.newPlot("candlestickChart", [trace], layout);
+      });
+  </script>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
